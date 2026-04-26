@@ -17,7 +17,7 @@ A web-based study productivity tool designed to help students stay organised and
 
 ## 🚀 Live Demo
 
-[View Live Site](https://your-username.github.io/StudySync)
+[View Live Site]()
 
 ## 📦 How to Use
 
@@ -30,4 +30,4 @@ A web-based study productivity tool designed to help students stay organised and
 ## 👤 Author :fayez
 
 **Md Fayez**  
-[GitHub Profile](https://github.com/your-username)
+[GitHub Profile](https://github.com/nafifayez0-create)
