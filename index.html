@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StudySync – AI-powered academic support platform designed to improve students' time management, productivity, and overall academic performance.">
+    <meta name="keywords" content="StudySync, AI study planner, academic support, student productivity, time management, university">
+    <meta name="author" content="StudySync">
+    <title>StudySync – AI Academic Support Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Audio Assets -->
+    <audio id="audio-rain" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio> <!-- Placeholder, but structured -->
+    <audio id="audio-cafe" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+    <audio id="audio-noise" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"></audio>
+</head>
+<body>
+    <!-- =========== AUTH LOADING OVERLAY =========== -->
+    <div id="auth-loading" class="auth-loading-screen">
+        <div class="loader">
+            <div class="loader-circle"></div>
+            <div class="loader-text">Study<span class="highlight">Sync</span></div>
+        </div>
+    </div>
+
+    <!-- =========== LOGGED IN APP DASHBOARD =========== -->
+    <main id="app-dashboard" class="app-container" style="display: none;">
+        <div class="app-sidebar">
+            <div class="app-logo">S<span>tudySync</span></div>
+            <nav class="app-nav">
+                <a href="#" class="app-nav-item active" data-view="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="#" class="app-nav-item" data-view="planner">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span class="nav-text">AI Planner</span>
+                </a>
+                <a href="#" class="app-nav-item" data-view="tasks">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    <span class="nav-text">Tasks</span>
+                </a>
+                <a href="#" class="app-nav-item" data-view="focus">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span class="nav-text">Focus Mode</span>
+                </a>
+            </nav>
+            <div class="app-sidebar-footer">
+                <button id="app-logout-btn" class="btn btn-outline btn-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span class="nav-text">Sign Out</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="app-main">
+            <header class="app-header">
+                <div class="header-search">
+                    <input type="text" placeholder="Search your modules...">
+                </div>
+                <div class="header-user">
+                    <span id="user-display-name">Student</span>
+                    <div class="user-avatar">?</div>
+                </div>
+            </header>
+
+            <div id="view-dashboard" class="dashboard-view active">
+                <div class="app-grid">
+                    <div class="app-card stat-card">
+                        <h3>Overall Progress</h3>
+                        <div class="progress-info">
+                            <span class="p-val">75%</span>
+                            <span class="p-sub">Course modules completed</span>
+                        </div>
+                    </div>
+
+                    <div class="app-card ai-insight-card">
+                        <div class="card-header">
+                            <h3>AI Study Insight</h3>
+                            <span class="sparkle">✨</span>
+                        </div>
+                        <p>You're most productive between 2 PM and 4 PM. We've scheduled your hardest tasks then.</p>
+                    </div>
+
+                    <div class="app-card task-card">
+                        <h3>Today's Schedule</h3>
+                        <div class="mini-tasks">
+                            <div class="m-task"><span></span> Math Assignment Prep</div>
+                            <div class="m-task"><span></span> AI Ethics Review</div>
+                            <div class="m-task active"><span></span> Spaced Repetition Practice</div>
+                        </div>
+                    </div>
+
+                    <div class="app-card contact-card">
+                        <h3>Contact Advisor</h3>
+                        <p>Need support? Your assigned advisor is online.</p>
+                        <a href="mailto:hasanrahim581@gmail.com" class="btn btn-primary btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Chat Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-planner" class="dashboard-view">
+                <div class="planner-header">
+                    <div class="ph-info">
+                        <h2>AI Study Planner</h2>
+                        <p>Week of April 19th • 3 Modules Active</p>
+                    </div>
+                    <div class="ph-actions" style="display: flex; gap: 12px;">
+                        <button class="btn btn-outline btn-sm" id="btn-manual-planner">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Manual Plan
+                        </button>
+                        <button class="btn btn-primary btn-sm" id="btn-generate-ai">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+                            Regenerate Plan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="app-grid-planner" id="planner-board">
+                    <div class="planner-card" data-day="Monday">
+                        <div class="pc-head">Monday</div>
+                        <div class="pc-body">
+                            <div class="p-task research">
+                                <button class="delete-p-task" title="Delete Task">×</button>
+                                <div class="task-info">
+                                    <span class="time">09:00 - 11:00</span>
+                                    <h4>Research Methodology</h4>
+                                    <p>Focus on Literature Review</p>
+                                </div>
+                                <div class="task-progress-bar">
+                                    <div class="tp-fill" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                            <div class="p-task ethics">
+                                <button class="delete-p-task" title="Delete Task">×</button>
+                                <div class="task-info">
+                                    <span class="time">14:00 - 16:00</span>
+                                    <h4>AI Bioethics</h4>
+                                    <p>Drafting Case Studies</p>
+                                </div>
+                                <div class="task-progress-bar">
+                                    <div class="tp-fill" style="width: 20%;"></div>
+                                </div>
+                            </div>
+                            <!-- Manual Add hidden by default -->
+                            <button class="btn btn-outline btn-sm add-manual-task" style="display: none; width: 100%; margin-top: 10px;">+ Add Task</button>
+                        </div>
+                    </div>
+
+                    <div class="planner-card">
+                        <div class="pc-head">Tuesday</div>
+                        <div class="pc-body">
+                            <div class="p-task project">
+                                <button class="delete-p-task" title="Delete Task">×</button>
+                                <div class="task-info">
+                                    <span class="time">10:00 - 12:00</span>
+                                    <h4>Group Project Sync</h4>
+                                    <p>Preparation for Milestones</p>
+                                </div>
+                                <div class="task-progress-bar">
+                                    <div class="tp-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="p-task break">
+                                <button class="delete-p-task" title="Delete Task">×</button>
+                                <div class="task-info">
+                                    <span class="time">14:00 - 15:00</span>
+                                    <h4>Recharge Break</h4>
+                                    <p>AI Suggestion: Walk outside</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="planner-card">
+                        <div class="pc-head">Wednesday</div>
+                        <div class="pc-body">
+                            <div class="p-task research">
+                                <div class="task-info">
+                                    <span class="time">09:00 - 12:00</span>
+                                    <h4>Intensive Study</h4>
+                                    <p>Methodology Section Completion</p>
+                                </div>
+                                <div class="task-progress-bar">
+                                    <div class="tp-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline btn-sm add-manual-task" style="display: none; width: 100%; margin-top: 10px;">+ Add Task</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Planner Discovery Modal -->
+                <div id="planner-modal" class="modal-overlay" style="display: none;">
+                    <div class="modal-content">
+                        <h3>AI Planner Discovery</h3>
+                        <p style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted);">Tell us about your week so our AI can optimize your schedule.</p>
+                        
+                        <div class="form-group">
+                            <label>What is your primary goal this week?</label>
+                            <input type="text" id="ai-goal-input" placeholder="e.g. Finish Research Proposal">
+                        </div>
+                        <div class="form-group">
+                            <label>How many hours can you study per day?</label>
+                            <input type="number" id="ai-hours-input" value="4">
+                        </div>
+                        <div class="form-group">
+                            <label>Focus Difficulty</label>
+                            <select id="ai-focus-select">
+                                <option value="low">Low (Many breaks)</option>
+                                <option value="med" selected>Medium (Standard)</option>
+                                <option value="high">High (Deep work sessions)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 30px;">
+                            <button class="btn btn-primary btn-full" id="confirm-ai-gen">Generate My Plan</button>
+                            <button class="btn btn-outline" id="close-planner-modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-tasks" class="dashboard-view">
+                <div class="app-card" style="max-width: 600px;">
+                    <h3>Today's Schedule</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Manage your daily academic objectives here.</p>
+                    
+                    <div class="task-input-group" style="display: flex; gap: 10px; margin-bottom: 25px;">
+                        <input type="text" id="manual-task-input" placeholder="Enter a new task..." style="flex: 1; background: #111; border: 1px solid #222; padding: 12px; border-radius: 8px; color: white;">
+                        <button id="add-manual-task-btn" class="btn btn-primary btn-sm">Add Task</button>
+                    </div>
+
+                    <div class="mini-tasks" id="main-tasks-list">
+                        <!-- Tasks will be rendered here -->
+                        <div class="m-task" onclick="this.remove()"><span></span> Math Assignment Prep</div>
+                        <div class="m-task" onclick="this.remove()"><span></span> AI Ethics Review</div>
+                        <div class="m-task active" onclick="this.remove()"><span></span> Spaced Repetition Practice</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-focus" class="dashboard-view">
+                <div class="focus-layout">
+                    <!-- Main Timer Area -->
+                    <div class="focus-timer-container">
+                        <div class="zen-circle"></div>
+                        <div class="timer-main">
+                            <div class="timer-display" id="focus-timer">25:00</div>
+                            <div class="timer-controls">
+                                <button class="btn btn-primary btn-lg" id="timer-start">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    Focus
+                                </button>
+                                <button class="btn btn-outline btn-lg" id="timer-reset">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Companion Sidebar -->
+                    <div class="app-card focus-companion">
+                        <div class="companion-head">
+                            <h3>AI Focus Companion</h3>
+                            <span class="pulsing-brain">🧠</span>
+                        </div>
+                        <div class="companion-body">
+                            <div class="companion-sec">
+                                <label>AI Atmosphere</label>
+                                <div class="sound-grid">
+                                    <button class="sound-btn active" data-sound="none">Silence</button>
+                                    <button class="sound-btn" data-sound="rain">Rain</button>
+                                    <button class="sound-btn" data-sound="cafe">Cafe</button>
+                                    <button class="sound-btn" data-sound="noise">White Noise</button>
+                                </div>
+                                <div class="volume-control">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                    <input type="range" id="focus-volume" min="0" max="1" step="0.1" value="0.5">
+                                </div>
+                                <div class="sound-visualizer">
+                                    <div class="v-bar"></div>
+                                    <div class="v-bar"></div>
+                                    <div class="v-bar"></div>
+                                    <div class="v-bar"></div>
+                                    <div class="v-bar"></div>
+                                </div>
+                            </div>
+                            <div class="companion-sec">
+                                <label>AI Goal</label>
+                                <p id="focus-tip">"I'll help you stay on track. This 25-minute block is optimized for your peak focus time."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="landing-wrapper">
+    <!-- =========== NAVIGATION =========== -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#home" class="logo" id="logo">
+                <span class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <circle cx="16" cy="16" r="14" stroke="url(#grad1)" stroke-width="2.5"/>
+                        <path d="M10 16C10 12.686 12.686 10 16 10C19.314 10 22 12.686 22 16" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="16" cy="20" r="2" fill="url(#grad1)"/>
+                        <defs>
+                            <linearGradient id="grad1" x1="0" y1="0" x2="32" y2="32">
+                                <stop offset="0%" stop-color="#ff3131"/>
+                                <stop offset="100%" stop-color="#8b0000"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </span>
+                <span class="logo-text">Study<span class="logo-highlight">Sync</span></span>
+            </a>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#challenges" class="nav-link">Challenges</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+                <li><a href="#study-tips" class="nav-link">Study Tips</a></li>
+                <li><a href="#testimonials" class="nav-link">Reviews</a></li>
+                <li><a href="#faq" class="nav-link">FAQ</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+            <a href="#login" class="btn btn-primary nav-cta" id="nav-login-btn">Login</a>
+            <a href="#" class="btn btn-outline nav-cta" id="nav-logout-btn" style="display:none;">Logout</a>
+            <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- =========== HERO SECTION =========== -->
+    <section class="hero" id="home">
+        <div class="hero-bg-effects">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+            <div class="hero-orb hero-orb-3"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="container hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    AI-Powered Academic Support
+                </div>
+                <h1 class="hero-title">
+                    Master Your <span class="gradient-text">Study Schedule</span> With Intelligent AI
+                </h1>
+                <p class="hero-description">
+                    StudySync is an AI-powered academic support platform designed to improve students' time management, productivity, and overall academic performance. Balance coursework, part-time jobs, and personal responsibilities — all in one place.
+                </p>
+                <div class="hero-actions">
+                    <a href="#features" class="btn btn-primary btn-lg" id="hero-get-started">
+                        Get Started Free
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4.167 10h11.666M10 4.167L15.833 10 10 15.833" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="#how-it-works" class="btn btn-outline btn-lg" id="hero-learn-more">Learn How It Works</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">10K+</span>
+                        <span class="stat-label">Active Students</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-number">95%</span>
+                        <span class="stat-label">Improved Grades</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-number">50+</span>
+                        <span class="stat-label">Universities</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-image-glow"></div>
+                <img src="images/hero-illustration.png" alt="Student studying with AI-powered tools showing study schedules and progress charts" loading="eager">
+            </div>
+        </div>
+        <div class="hero-scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow">
+                <svg width="16" height="24" viewBox="0 0 16 24" fill="none">
+                    <path d="M8 0v20M1 14l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+    
+    <!-- =========== PARTNERS SECTION =========== -->
+    <div class="partners-bar">
+        <div class="container">
+            <div class="partners-wrapper">
+                <span class="partners-text">Trusted by students from:</span>
+                <div class="partners-logos" id="partners-logos">
+                    <!-- Logos generated with CSS/SVG -->
+                    <div class="partner-logo">University of East London</div>
+                    <div class="partner-logo">Oxford University</div>
+                    <div class="partner-logo">Kings College</div>
+                    <div class="partner-logo">Imperial College</div>
+                    <div class="partner-logo">UCL</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========== CHALLENGES SECTION =========== -->
+    <section class="section challenges" id="challenges">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">The Problem</span>
+                <h2 class="section-title">Challenges Faced by <span class="gradient-text">Students</span></h2>
+                <p class="section-subtitle">University life brings many challenges that can hinder academic success. StudySync understands these pain points and is designed to address them head-on.</p>
+            </div>
+            <div class="challenges-grid">
+                <div class="challenge-card" id="challenge-time">
+                    <div class="challenge-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <h3>Poor Time Management</h3>
+                    <p>Students struggle to allocate time effectively between lectures, assignments, revision, and personal life, leading to last-minute cramming and burnout.</p>
+                </div>
+                <div class="challenge-card" id="challenge-stress">
+                    <div class="challenge-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/>
+                            <path d="M8 15s1.5-2 4-2 4 2 4 2"/>
+                            <line x1="9" y1="9" x2="9.01" y2="9"/>
+                            <line x1="15" y1="9" x2="15.01" y2="9"/>
+                        </svg>
+                    </div>
+                    <h3>High Stress Levels</h3>
+                    <p>Academic pressure, deadlines, and workload create overwhelming stress that impacts mental health, focus, and overall well-being of students.</p>
+                </div>
+                <div class="challenge-card" id="challenge-planning">
+                    <div class="challenge-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <h3>Lack of Study Planning</h3>
+                    <p>Without structured study plans, students often find themselves directionless, studying the wrong material or neglecting important topics until it's too late.</p>
+                </div>
+                <div class="challenge-card" id="challenge-distractions">
+                    <div class="challenge-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                            <line x1="12" y1="18" x2="12.01" y2="18"/>
+                        </svg>
+                    </div>
+                    <h3>Distractions</h3>
+                    <p>Social media, smartphones, and other digital distractions constantly compete for attention, making deep focus and productive study sessions difficult.</p>
+                </div>
+                <div class="challenge-card" id="challenge-guidance">
+                    <div class="challenge-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <h3>Limited Academic Guidance</h3>
+                    <p>Many students lack access to personalised academic advice and mentorship, leaving them unsure about the best study strategies for their courses.</p>
+                </div>
+                <div class="challenge-card" id="challenge-international">
+                    <div class="challenge-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <h3>International Student Challenges</h3>
+                    <p>International students face additional hurdles including language barriers, cultural adaptation, different academic systems, and feelings of isolation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== PROJECT GOAL SECTION =========== -->
+    <section class="section project-goal" id="project-goal">
+        <div class="container">
+            <div class="goal-wrapper">
+                <div class="goal-content">
+                    <span class="section-tag">Our Mission</span>
+                    <h2 class="section-title">The Project <span class="gradient-text">Goal</span></h2>
+                    <p class="goal-text">
+                        The goal is to design a <strong>user-friendly website</strong> that uses <strong>Artificial Intelligence (AI)</strong> to assist students in organising study schedules and improving productivity while promoting <strong>ethical and responsible AI usage</strong>.
+                    </p>
+                    <div class="goal-highlights">
+                        <div class="goal-highlight-item">
+                            <div class="goal-check">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span>Organise study schedules intelligently</span>
+                        </div>
+                        <div class="goal-highlight-item">
+                            <div class="goal-check">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span>Improve productivity with AI insights</span>
+                        </div>
+                        <div class="goal-highlight-item">
+                            <div class="goal-check">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span>Promote ethical and responsible AI usage</span>
+                        </div>
+                        <div class="goal-highlight-item">
+                            <div class="goal-check">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span>Balance coursework and personal life</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="goal-image">
+                    <img src="images/about-illustration.png" alt="Diverse students collaborating and using study analytics on tablets" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== FEATURES SECTION =========== -->
+    <section class="section features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Platform Features</span>
+                <h2 class="section-title">Main <span class="gradient-text">Features</span></h2>
+                <p class="section-subtitle">StudySync comes packed with powerful features designed to transform how you study, plan, and achieve your academic goals.</p>
+            </div>
+            <div class="features-showcase">
+                <div class="features-image">
+                    <div class="features-image-glow"></div>
+                    <img src="images/features-illustration.png" alt="AI-powered study planner dashboard with calendar widgets and progress tracking" loading="lazy">
+                </div>
+                <div class="features-list">
+                    <div class="feature-item" id="feature-login">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Secure University Login</h3>
+                            <p>Secure login with university email verification ensures only verified students access the platform, protecting your data and privacy.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" id="feature-planner">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3>AI Study Planner Dashboard</h3>
+                            <p>An intelligent dashboard that analyses your study patterns, deadlines, and workload to generate personalised study plans automatically.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" id="feature-techniques">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Study Techniques & Tips</h3>
+                            <p>Access a curated library of proven study techniques like Pomodoro, spaced repetition, and active recall to boost your learning efficiency.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" id="feature-ethics">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Ethical AI Use Information</h3>
+                            <p>Learn about responsible AI usage in academics, ensuring you leverage technology ethically while maintaining academic integrity.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" id="feature-progress">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="14"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Progress Tracking</h3>
+                            <p>Monitor your study progress with detailed analytics, visual charts, and milestone tracking to stay motivated and on target.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item" id="feature-advisors">
+                        <div class="feature-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Contact Academic Advisors</h3>
+                            <p>Directly reach out to academic advisors for personalised guidance, course planning support, and career counselling through the platform.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== DASHBOARD PREVIEW =========== -->
+    <section class="section dashboard-preview" id="dashboard">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">AI Analytics</span>
+                <h2 class="section-title">Your Personalized <span class="gradient-text">Study Dashboard</span></h2>
+                <p class="section-subtitle">A glimpse into the intelligent insights StudySync provides to keep you on track.</p>
+            </div>
+            <div class="dashboard-card">
+                <div class="dashboard-nav">
+                    <div class="dash-circles"><span></span><span></span><span></span></div>
+                    <div class="dash-title">StudySync Dashboard - v2.4</div>
+                </div>
+                <div class="dashboard-content">
+                    <div class="dash-sidebar">
+                        <div class="dash-item active">Overview</div>
+                        <div class="dash-item">Schedule</div>
+                        <div class="dash-item">Tasks</div>
+                        <div class="dash-item">AI Insights</div>
+                    </div>
+                    <div class="dash-main">
+                        <div class="dash-stats">
+                            <div class="dash-stat">
+                                <span class="label">Weekly Productivity</span>
+                                <span class="val">87%</span>
+                                <div class="prog-bar"><div class="fill" style="width: 87%"></div></div>
+                            </div>
+                            <div class="dash-stat">
+                                <span class="label">Focus Score</span>
+                                <span class="val">92%</span>
+                                <div class="prog-bar"><div class="fill" style="width: 92%"></div></div>
+                            </div>
+                        </div>
+                        <div class="dash-insight">
+                            <div class="insight-icon">✨</div>
+                            <div class="insight-text">
+                                <strong>AI Recommendation:</strong> You are most productive between 10 AM and 12 PM. We've optimized your hardest tasks for this window.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== HOW IT WORKS SECTION =========== -->
+    <section class="section how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Simple Process</span>
+                <h2 class="section-title">How <span class="gradient-text">StudySync</span> Works</h2>
+                <p class="section-subtitle">The platform analyses study hours, deadlines, breaks, and stress levels to generate personalised study plans, reminders, and productivity tips.</p>
+            </div>
+            <div class="workflow">
+                <div class="workflow-step" id="step-1">
+                    <div class="step-number">01</div>
+                    <div class="step-card">
+                        <div class="step-icon-wrapper">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <h3>Sign Up & Verify</h3>
+                        <p>Create your account using your university email. Our secure verification system ensures a safe and trusted learning environment.</p>
+                    </div>
+                    <div class="step-connector">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <path d="M10 20h20M25 15l5 5-5 5" stroke="url(#connGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs><linearGradient id="connGrad" x1="10" y1="20" x2="30" y2="20"><stop stop-color="#ff3131"/><stop offset="1" stop-color="#8b0000"/></linearGradient></defs>
+                        </svg>
+                    </div>
+                </div>
+                <div class="workflow-step" id="step-2">
+                    <div class="step-number">02</div>
+                    <div class="step-card">
+                        <div class="step-icon-wrapper">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <h3>AI Analyses Your Data</h3>
+                        <p>StudySync AI analyses your study hours, upcoming deadlines, break patterns, and stress levels to understand your unique academic profile.</p>
+                    </div>
+                    <div class="step-connector">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <path d="M10 20h20M25 15l5 5-5 5" stroke="url(#connGrad2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs><linearGradient id="connGrad2" x1="10" y1="20" x2="30" y2="20"><stop stop-color="#ff3131"/><stop offset="1" stop-color="#8b0000"/></linearGradient></defs>
+                        </svg>
+                    </div>
+                </div>
+                <div class="workflow-step" id="step-3">
+                    <div class="step-number">03</div>
+                    <div class="step-card">
+                        <div class="step-icon-wrapper">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                                <path d="M8 14l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <h3>Get Personalised Plan</h3>
+                        <p>Receive a tailored study plan with smart reminders, optimised break schedules, and productivity tips designed specifically for your needs.</p>
+                    </div>
+                    <div class="step-connector">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <path d="M10 20h20M25 15l5 5-5 5" stroke="url(#connGrad3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <defs><linearGradient id="connGrad3" x1="10" y1="20" x2="30" y2="20"><stop stop-color="#ff3131"/><stop offset="1" stop-color="#8b0000"/></linearGradient></defs>
+                        </svg>
+                    </div>
+                </div>
+                <div class="workflow-step" id="step-4">
+                    <div class="step-number">04</div>
+                    <div class="step-card">
+                        <div class="step-icon-wrapper">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                            </svg>
+                        </div>
+                        <h3>Track & Improve</h3>
+                        <p>Monitor your progress with AI-driven insights that help you maintain balanced workloads, stay focused, and continuously improve your performance.</p>
+                    </div>
+                </div>
+            </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== STUDY TIPS SECTION =========== -->
+    <section class="section study-tips" id="study-tips">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Study Smarter</span>
+                <h2 class="section-title">Effective <span class="gradient-text">Study Techniques</span></h2>
+                <p class="section-subtitle">Discover proven study methods integrated into StudySync to maximise your learning efficiency and academic success.</p>
+            </div>
+            <div class="tips-grid">
+                <div class="tip-card" id="tip-pomodoro">
+                    <div class="tip-number">01</div>
+                    <div class="tip-icon">🍅</div>
+                    <h3>Pomodoro Technique</h3>
+                    <p>Study in focused 25-minute intervals followed by 5-minute breaks. After four cycles, take a longer 15-30 minute break to recharge.</p>
+                    <div class="tip-tag">Time Management</div>
+                </div>
+                <div class="tip-card" id="tip-spaced">
+                    <div class="tip-number">02</div>
+                    <div class="tip-icon">🔄</div>
+                    <h3>Spaced Repetition</h3>
+                    <p>Review material at increasing intervals over time. This scientifically-proven method strengthens long-term memory retention significantly.</p>
+                    <div class="tip-tag">Memory</div>
+                </div>
+                <div class="tip-card" id="tip-active">
+                    <div class="tip-number">03</div>
+                    <div class="tip-icon">🧠</div>
+                    <h3>Active Recall</h3>
+                    <p>Test yourself on material rather than passively re-reading notes. Create flashcards or practice questions to strengthen understanding.</p>
+                    <div class="tip-tag">Comprehension</div>
+                </div>
+                <div class="tip-card" id="tip-feynman">
+                    <div class="tip-number">04</div>
+                    <div class="tip-icon">📝</div>
+                    <h3>Feynman Technique</h3>
+                    <p>Explain concepts in simple language as if teaching someone else. Identify gaps in your understanding and revisit those areas.</p>
+                    <div class="tip-tag">Deep Learning</div>
+                </div>
+                <div class="tip-card" id="tip-environment">
+                    <div class="tip-number">05</div>
+                    <div class="tip-icon">🏡</div>
+                    <h3>Study Environment</h3>
+                    <p>Create a dedicated, distraction-free study space. Good lighting, comfortable seating, and organised materials boost concentration.</p>
+                    <div class="tip-tag">Focus</div>
+                </div>
+                <div class="tip-card" id="tip-goals">
+                    <div class="tip-number">06</div>
+                    <div class="tip-icon">🎯</div>
+                    <h3>Goal Setting</h3>
+                    <p>Set SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound) for each study session to maintain direction and motivation.</p>
+                    <div class="tip-tag">Productivity</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== ETHICAL AI SECTION =========== -->
+    <section class="section ethical-ai" id="ethical-ai">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Responsible Technology</span>
+                <h2 class="section-title">Our Commitment to <span class="gradient-text">Ethical AI</span></h2>
+                <p class="section-subtitle">StudySync is built on the foundation of ethical AI principles, ensuring transparency, fairness, and responsibility in every interaction.</p>
+            </div>
+            <div class="ethical-grid">
+                <div class="ethical-card ethical-card-large" id="ethical-transparency">
+                    <div class="ethical-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4"/>
+                            <path d="M12 8h.01"/>
+                        </svg>
+                    </div>
+                    <h3>Transparency</h3>
+                    <p>We are completely transparent about how our AI works. You can always see why a recommendation was made and what data influenced the decision. No black boxes — just clear, understandable AI assistance.</p>
+                </div>
+                <div class="ethical-card" id="ethical-privacy">
+                    <div class="ethical-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h3>Data Privacy</h3>
+                    <p>Your academic data is encrypted and never shared with third parties. You have full control over your data at all times.</p>
+                </div>
+                <div class="ethical-card" id="ethical-fairness">
+                    <div class="ethical-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 12l3 3 5-5"/>
+                        </svg>
+                    </div>
+                    <h3>Fairness & Inclusion</h3>
+                    <p>Our AI is designed to be unbiased and inclusive, providing equal support to all students regardless of background.</p>
+                </div>
+                <div class="ethical-card" id="ethical-integrity">
+                    <div class="ethical-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                    </div>
+                    <h3>Academic Integrity</h3>
+                    <p>StudySync supports learning, not cheating. Our AI helps you study smarter while upholding the highest academic standards.</p>
+                </div>
+                <div class="ethical-card" id="ethical-control">
+                    <div class="ethical-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </div>
+                    <h3>User Control</h3>
+                    <p>You're always in charge. Customise AI suggestions, adjust preferences, and choose how much automation you want.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== LOGIN SECTION =========== -->
+    <section class="section login-section" id="login">
+        <div class="container">
+            <div class="login-wrapper">
+                <div class="login-info">
+                    <span class="section-tag">Get Started</span>
+                    <h2 class="section-title">Sign In to <span class="gradient-text">StudySync</span></h2>
+                    <p>Access your personalised AI study planner dashboard. Use your university email to get started.</p>
+                    <div class="login-features">
+                        <div class="login-feature">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span>Free for all university students</span>
+                        </div>
+                        <div class="login-feature">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span>256-bit encryption for your data</span>
+                        </div>
+                        <div class="login-feature">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span>Instant access to AI study planner</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="login-form-wrapper">
+                    <!-- Sign In Form -->
+                    <!-- Unified Auth Form -->
+                    <form class="login-form" id="login-form">
+                        <h3 id="auth-form-title">Welcome Back</h3>
+                        
+                        <!-- Sign up only field -->
+                        <div class="form-group signup-field" style="display:none;">
+                            <label for="signup-name">Full Name</label>
+                            <input type="text" id="signup-name" placeholder="Your full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">University Email</label>
+                            <input type="email" id="email" placeholder="you@university.ac.uk" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="password" placeholder="Enter your password" required minlength="6">
+                                <button type="button" class="password-toggle" id="password-toggle">
+                                    <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg class="eye-closed" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sign up only field -->
+                        <div class="form-group signup-field" style="display:none;">
+                            <label for="confirm-password">Confirm Password</label>
+                            <input type="password" id="confirm-password" placeholder="Confirm your password">
+                        </div>
+
+                        <div class="form-options" id="login-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="remember-me">
+                                <span class="checkmark"></span>
+                                Remember me
+                            </label>
+                            <a href="#" class="forgot-link" id="forgot-password-link">Forgot password?</a>
+                        </div>
+
+                        <div id="auth-error" class="auth-error" style="display:none;"></div>
+
+                        <button type="submit" class="btn btn-primary btn-full" id="login-submit">
+                            <span id="submit-text">Sign In</span>
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4.167 10h11.666M10 4.167L15.833 10 10 15.833" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+
+                        <p class="form-footer" id="auth-toggle-text">
+                            <span id="toggle-desc">Don't have an account?</span> 
+                            <a href="#" id="auth-toggle-link">Sign up with university email</a>
+                        </p>
+                    </form>
+                    <!-- Logged-in state -->
+                    <div id="logged-in-panel" style="display:none;" class="logged-in-panel">
+                        <div class="logged-in-avatar">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                        </div>
+                        <h3>Welcome back!</h3>
+                        <p id="logged-in-email"></p>
+                        <p class="logged-in-status">You are signed in to StudySync</p>
+                        <button class="btn btn-outline btn-full" id="panel-logout-btn">Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== TESTIMONIALS SECTION =========== -->
+    <section class="section testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Student Success</span>
+                <h2 class="section-title">What Our <span class="gradient-text">Users Say</span></h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="test-quote">"StudySync transformed how I manage my university life. The AI planner is a lifesaver!"</div>
+                    <div class="test-user">
+                        <div class="test-avatar">JD</div>
+                        <div class="test-meta">
+                            <strong>James D.</strong>
+                            <span>UEL Student</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="test-quote">"The ethical AI guidance gave me total confidence in using technology for my studies."</div>
+                    <div class="test-user">
+                        <div class="test-avatar">SA</div>
+                        <div class="test-meta">
+                            <strong>Sarah A.</strong>
+                            <span>Oxford Univ.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== FAQ SECTION =========== -->
+    <section class="section faq" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Help Center</span>
+                <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-question">How does StudySync AI work?</div>
+                    <div class="faq-answer">Our AI analyses your study habits, deadines, and workload to generate the most efficient schedule for your academic goals.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Is it free for students?</div>
+                    <div class="faq-answer">Yes! StudySync is completely free for all verified university students with an .ac.uk email address.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Is my data secure?</div>
+                    <div class="faq-answer">Absolutely. We use industry-standard encryption and never share your data with third parties.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== CONTACT SECTION =========== -->
+    <section class="section contact" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Get In Touch</span>
+                <h2 class="section-title">Contact <span class="gradient-text">Academic Advisors</span></h2>
+                <p class="section-subtitle">Have questions about your studies or need personalised academic guidance? Our team of advisors is here to help you succeed.</p>
+            </div>
+            <div class="contact-wrapper">
+                <div class="contact-info-cards">
+                    <div class="contact-info-card" id="contact-email-card">
+                        <div class="contact-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                        </div>
+                        <h4>Email Us</h4>
+                        <p><a href="mailto:hasanrahim581@gmail.com" style="color: inherit; text-decoration: none;">hasanrahim581@gmail.com</a></p>
+                    </div>
+                    <div class="contact-info-card" id="contact-phone-card">
+                        <div class="contact-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                        </div>
+                        <h4>Call Us</h4>
+                        <p>+44 20 7946 0958</p>
+                    </div>
+                    <div class="contact-info-card" id="contact-location-card">
+                        <div class="contact-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <h4>Visit Us</h4>
+                        <p>University of East London</p>
+                    </div>
+                </div>
+                <form class="contact-form" id="contact-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="contact-name">Full Name</label>
+                            <input type="text" id="contact-name" name="name" placeholder="Your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email">Email Address</label>
+                            <input type="email" id="contact-email" name="email" placeholder="you@university.ac.uk" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-subject">Subject</label>
+                        <select id="contact-subject" name="subject" required>
+                            <option value="" disabled selected>Select a topic</option>
+                            <option value="academic">Academic Guidance</option>
+                            <option value="technical">Technical Support</option>
+                            <option value="career">Career Counselling</option>
+                            <option value="wellbeing">Student Well-being</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-message">Message</label>
+                        <textarea id="contact-message" name="message" rows="5" placeholder="Tell us how we can help you..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg" id="contact-submit">
+                        Send Message
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M18.333 1.667L9.167 10.833" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M18.333 1.667l-5.833 16.666-3.333-7.5-7.5-3.333 16.666-5.833z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========== FOOTER =========== -->
+    <footer class="footer" id="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="#home" class="logo">
+                        <span class="logo-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                                <circle cx="16" cy="16" r="14" stroke="url(#gradF)" stroke-width="2.5"/>
+                                <path d="M10 16C10 12.686 12.686 10 16 10C19.314 10 22 12.686 22 16" stroke="url(#gradF)" stroke-width="2.5" stroke-linecap="round"/>
+                                <circle cx="16" cy="20" r="2" fill="url(#gradF)"/>
+                                <defs>
+                                    <linearGradient id="gradF" x1="0" y1="0" x2="32" y2="32">
+                                        <stop offset="0%" stop-color="#ff3131"/>
+                                        <stop offset="100%" stop-color="#8b0000"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </span>
+                        <span class="logo-text">Study<span class="logo-highlight">Sync</span></span>
+                    </a>
+                    <p class="footer-description">AI-powered academic support platform helping students achieve their full potential through intelligent study planning and personalised guidance.</p>
+                </div>
+                <div class="footer-links-group">
+                    <div class="footer-links">
+                        <h4>Platform</h4>
+                        <ul>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#how-it-works">How It Works</a></li>
+                            <li><a href="#study-tips">Study Tips</a></li>
+                            <li><a href="#login">Login</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Company</h4>
+                        <ul>
+                            <li><a href="#project-goal">About Us</a></li>
+                            <li><a href="#ethical-ai">Ethical AI</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-links">
+                        <h4>Support</h4>
+                        <ul>
+                            <li><a href="#">Help Centre</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Accessibility</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 StudySync. All rights reserved. | University of East London</p>
+                <div class="footer-socials">
+                    <a href="#" aria-label="Twitter" class="social-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+                    </a>
+                    <a href="#" aria-label="LinkedIn" class="social-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                    </a>
+                    <a href="#" aria-label="Instagram" class="social-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    </div> <!-- End landing-wrapper -->
+
+    <!-- =========== TOAST NOTIFICATION =========== -->
+    </main>
+
+    <div id="toast" class="toast" style="display:none;">
+        <div class="toast-content">
+            <span id="toast-icon" class="toast-icon"></span>
+            <span id="toast-message" class="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- =========== JAVASCRIPT – SUPABASE INTEGRATION =========== -->
+    <!-- =========== JAVASCRIPT – SUPABASE INTEGRATION =========== -->
+    <script src="script.js"></script>
+</body>
+</html>
