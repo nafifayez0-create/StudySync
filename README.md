@@ -17,7 +17,7 @@ A web-based study productivity tool designed to help students stay organised and
 
 ## 🚀 Live Demo
 
-[View Live Site](nafifayez0-create)
+[View Live Site](https://nafifayez0-create.github.io/StudySync/)
 
 ## 📦 How to Use
 
