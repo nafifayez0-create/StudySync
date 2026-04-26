@@ -23,7 +23,7 @@ A web-based study productivity tool designed to help students stay organised and
 
 1. Clone the repo:
 ```bash
-   git clone https://github.com/your-username/StudySync.git
+   https://nafifayez0-create.github.io/StudySync/
 ```
 2. Open `index.html` in your browser
 
